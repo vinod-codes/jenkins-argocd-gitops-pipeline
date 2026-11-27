@@ -8,6 +8,14 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 MAVEN="${MAVEN:-$HOME/workspace/.tools/apache-maven-3.9.9/bin/mvn}"
 HELM="${HELM:-$HOME/workspace/.tools/linux-amd64/helm}"
 
+# The system JDK on this machine is a JRE-headless install: it has no
+# javac and no compiler release data (lib/ct.sym), so `mvn clean test`
+# fails with "release version 17 not supported". Use the full Temurin
+# JDK from the workspace when it is present and JAVA_HOME is not set.
+if [ -z "${JAVA_HOME:-}" ] && [ -x "$HOME/workspace/.tools/jdk-21.0.13.1+2/bin/javac" ]; then
+    export JAVA_HOME="$HOME/workspace/.tools/jdk-21.0.13.1+2"
+fi
+
 echo "== 1. Maven unit tests (offline: the local repo was populated by scripts/populate-maven-repo.py) =="
 "$MAVEN" -o -s "$HOME/.m2/settings.xml" -Dmaven.repo.local="$HOME/workspace/.m2" \
   -f "$ROOT/app/pom.xml" clean test

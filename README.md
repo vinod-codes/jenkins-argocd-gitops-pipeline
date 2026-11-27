@@ -439,6 +439,7 @@ the pinned image, `/health` probes and the non-root security context.
 | Symptom | Likely cause and fix |
 |---|---|
 | `mvn clean test` cannot download dependencies | The build machine has no Maven Central access. Populate a local repo first: `python3 scripts/populate-maven-repo.py` (downloads artifacts with curl, then Maven runs with `-o`), or give the machine internet access. |
+| `release version 17 not supported` when compiling | The JDK is a JRE-headless install without the compiler's release data (`lib/ct.sym`). `scripts/local-checks.sh` uses the full Temurin JDK from the workspace when it is present; otherwise set `JAVA_HOME` to a full JDK 17+ before running Maven. |
 | Jenkins build loops after the tag commit | The `[skip ci]` guard or the path filter is missing. Check the commit message and the job's excluded regions (`helm/.*`, `k8s/.*`, `argocd/.*`). |
 | Quality gate never returns | SonarQube server name in Jenkins is not `sonarqube`, or the webhook from SonarQube to Jenkins is not configured. |
 | ArgoCD shows OutOfSync after a push | Check that the Application path is `helm/app-chart` and the repo URL matches this repository. Sync manually once from the ArgoCD UI to confirm. |
