@@ -1,0 +1,21 @@
+# Build output
+target/
+*.class
+*.jar
+*.war
+
+# Maven local repository is not part of this repo
+.m2/
+
+# IDE and editor files
+.idea/
+*.iml
+.vscode/
+*.swp
+.DS_Store
+
+# OS files
+Thumbs.db
+
+# Local environment notes (may contain host-specific paths)
+local-notes.md

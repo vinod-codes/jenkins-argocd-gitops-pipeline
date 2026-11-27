@@ -1,0 +1,11 @@
+target/
+.git/
+.gitignore
+Dockerfile
+.dockerignore
+README.md
+Jenkinsfile
+k8s/
+helm/
+argocd/
+scripts/

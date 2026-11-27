@@ -1,0 +1,2 @@
+# Helm chart packaging files (not rendered into manifests).
+*.tgz

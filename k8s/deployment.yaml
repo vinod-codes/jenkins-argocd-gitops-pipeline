@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitops-demo
+  namespace: gitops-demo
+  labels:
+    app: gitops-demo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gitops-demo
+  template:
+    metadata:
+      labels:
+        app: gitops-demo
+    spec:
+      containers:
+        - name: gitops-demo
+          # Update this tag to deploy a new version. In the automated flow
+          # Jenkins updates helm/app-chart/values.yaml instead; this file is
+          # the plain-manifest alternative for clusters without Helm.
+          image: docker.io/vinodg/gitops-demo:1.0.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 15
