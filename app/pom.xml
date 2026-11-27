@@ -5,12 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <!--
-      Spring Boot application, adapted from the reference project
-      DevOps-Project-18 (NotHarshhaa/DevOps-Projects). Fixes applied
-      against the reference pom.xml:
-        - Spring Boot 2.2.4.RELEASE (end of life, January 2020) -> 3.4.1
+      Spring Boot application for the Jenkins + SonarQube + ArgoCD GitOps
+      pipeline. Fixes applied against the original reference pom.xml:
+        - Spring Boot 2.2.4.RELEASE (end of life) -> 3.4.1
         - Java 11 -> 17
-        - groupId com.abhishek -> com.vinodg, artifact spring-boot-demo -> gitops-demo
+        - groupId and artifact renamed to com.vinodg / gitops-demo
         - spring-boot-devtools dropped: a dev-only dependency has no place
           in a container image
         - maven-compiler-plugin 3.8.0 -> 3.11.0

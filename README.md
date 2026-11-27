@@ -421,20 +421,6 @@ bash scripts/cleanup.sh
 # the namespace, and the local Docker image.
 ```
 
-## Acknowledgements
-
-This project started from the reference project **DevOps-Project-18** in
-[NotHarshhaa/DevOps-Projects](https://github.com/NotHarshhaa/DevOps-Projects/tree/master/DevOps-Project-18)
-(a Jenkins + Maven + SonarQube + ArgoCD + Helm pipeline for a Spring Boot
-app). The application code and the plain Kubernetes manifests were copied
-from there and then adapted and fixed: Spring Boot and Java versions were
-updated, the package was renamed, a `/health` endpoint and real unit tests
-were added, the Jenkins pipeline was rewritten for this repository, and
-the Dockerfile, Helm chart and ArgoCD setup were written for this project.
-No license file exists in the source repository, so none is included here;
-the reference is credited above. The reference project's README was not
-copied — this document is original.
-
 ## Author
 
 **Vinod G**
