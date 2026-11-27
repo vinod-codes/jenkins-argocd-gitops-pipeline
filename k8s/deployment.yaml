@@ -15,6 +15,12 @@ spec:
       labels:
         app: gitops-demo
     spec:
+      # Run as a non-root user (the image runs as appuser, UID 10001).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: gitops-demo
           # Update this tag to deploy a new version. In the automated flow
@@ -22,6 +28,13 @@ spec:
           # the plain-manifest alternative for clusters without Helm.
           image: docker.io/vinodg/gitops-demo:1.0.0
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 10001
           ports:
             - containerPort: 8080
               name: http

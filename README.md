@@ -32,7 +32,7 @@ flowchart LR
     J -->|mvn clean test| Tests["Unit tests"]
     J -->|sonar:sonar| SQ["SonarQube\nquality gate"]
     J -->|docker build + push| REG["Container registry\ndocker.io/vinodg/gitops-demo"]
-    J -->|commit image tag [skip ci]| GH
+    J -->|"commit image tag [skip ci]"| GH
     GH -->|watch| ACD["ArgoCD"]
     ACD -->|helm sync| K8s["Kubernetes\nnamespace gitops-demo"]
     K8s --> App["gitops-demo pods\n2 replicas, /health probes"]

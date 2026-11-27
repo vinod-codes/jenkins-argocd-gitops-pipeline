@@ -14,10 +14,23 @@ spec:
       labels:
         {{- include "app-chart.selectorLabels" . | nindent 8 }}
     spec:
+      # Run as a non-root user (the image runs as appuser, UID 10001).
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 10001
           ports:
             - name: http
               containerPort: 8080

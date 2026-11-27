@@ -48,7 +48,8 @@ pipeline {
     environment {
         // GitHub noreply address for the vinod-codes account, used only for
         // the automated tag-update commit. No real email is invented here.
-        GIT_COMMIT_EMAIL = 'vinod-codes@users.noreply.github.com'
+        // (Full noreply address, verified from the repository's commit history.)
+        GIT_COMMIT_EMAIL = '164331435+vinod-codes@users.noreply.github.com'
         GIT_COMMIT_NAME = 'Vinod G'
     }
 

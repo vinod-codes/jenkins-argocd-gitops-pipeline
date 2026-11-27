@@ -9,7 +9,9 @@ COPY app/src app/src
 RUN mvn -f app/pom.xml -q clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+# Fixed UID/GID 10001 so the Kubernetes securityContext (runAsUser: 10001)
+# matches the user inside the image.
+RUN addgroup -S -g 10001 appgroup && adduser -S -u 10001 appuser -G appgroup
 WORKDIR /app
 COPY --from=build /src/app/target/gitops-demo-1.0.0.jar app.jar
 USER appuser
