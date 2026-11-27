@@ -1,10 +1,16 @@
 # Jenkins + SonarQube + ArgoCD GitOps Pipeline
 
-A complete CI/CD pipeline for a Java (Spring Boot) web application, built on
-the GitOps pattern: Jenkins builds, tests and scans the code, then commits
-the new image tag back to this repository, and ArgoCD deploys whatever Git
-says into the Kubernetes cluster. Nothing is deployed by hand, and the
-cluster state always matches the Git history.
+![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot 3.4.1](https://img.shields.io/badge/Spring%20Boot-3.4.1-6DB33F?logo=springboot&logoColor=white)
+![Maven 3.9](https://img.shields.io/badge/Maven-3.9-C71A36?logo=apachemaven&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
+![Helm](https://img.shields.io/badge/Helm-3%20%7C%204-0F1689?logo=helm&logoColor=white)
+![ArgoCD](https://img.shields.io/badge/ArgoCD-automated%20sync-EF7B4D?logo=argo&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-2%20replicas-326CE5?logo=kubernetes&logoColor=white)
+
+> **Push code → Jenkins builds, tests and scans it → the image tag is
+> committed back to Git → ArgoCD deploys whatever Git says.** No manual
+> deploys, no drift: the cluster always matches the Git history.
 
 ## Overview
 
@@ -98,13 +104,13 @@ in the cluster. Nobody applies manifests by hand. The flow here is:
 | Layer | Choice |
 |---|---|
 | Language | Java 17 |
-| Framework | Spring Boot 3.4.1 (web + Thymeleaf) |
+| Framework | Spring Boot 3.4.1 (web + Thymeleaf) — pinned for offline reproducibility; the current stable line is 4.2.0 (Nov 2026), and the upgrade is tracked separately, not silently applied |
 | Build | Maven 3.9 |
 | Tests | JUnit 5, Spring Boot Test, MockMvc |
 | Code quality | SonarQube (sonar-maven-plugin 4.0.0.4121) |
 | CI | Jenkins declarative pipeline |
 | Container | Docker, multi-stage build, Temurin 21 |
-| Kubernetes | Plain manifests + Helm chart (v3) |
+| Kubernetes | Plain manifests + Helm chart (apiVersion v2; works with Helm 3 and 4) |
 | GitOps | ArgoCD Application, automated sync |
 | Registry | Docker Hub (`docker.io/vinodg/gitops-demo`) |
 
@@ -157,7 +163,7 @@ in the cluster. Nobody applies manifests by hand. The flow here is:
 
 - Java 17+ and Maven 3.9 (to build the app locally)
 - Docker (to build the image)
-- A Kubernetes cluster with Helm 3 and ArgoCD installed (to deploy)
+- A Kubernetes cluster with Helm 3 or 4 and ArgoCD installed (to deploy)
 - A Jenkins server with the plugins below, a SonarQube server, and a
   container registry account (Docker Hub by default)
 
@@ -363,7 +369,7 @@ through this sandbox's egress proxy — see the note in
 
 - `mvn -f app/pom.xml clean test` — **BUILD SUCCESS, 10 tests run, 0
   failures, 0 errors, 0 skipped** (5 `GreetingServiceTest` unit tests +
-  5 `HomeControllerTest` MockMvc HTTP tests, ~17 s).
+  5 `HomeControllerTest` MockMvc HTTP tests, ~20 s).
 - `mvn -f app/pom.xml clean package -DskipTests` — **BUILD SUCCESS**,
   executable jar `app/target/gitops-demo-1.0.0.jar` (22 MB, Spring Boot
   repackaged).
