@@ -398,6 +398,36 @@ through this sandbox's egress proxy — see the note in
   scan ran. The plugin is pinned in `app/pom.xml` and the pipeline stage
   is written; run it against a real server.
 
+## Screenshots
+
+Real output from local runs on 27 November 2026 (Spring Boot 3.4.1, Java
+17, Maven 3.9.9, Helm 3.17.0). The images are terminal captures of actual
+commands — nothing is mocked up. Jenkins runs, ArgoCD sync,
+`kubectl apply`, Docker builds and SonarQube scans have no screenshots
+because they cannot run in this environment; see
+[What was not tested](#what-was-not-tested-and-why).
+
+### Tests and local checks
+
+![Tests and local checks](docs/screenshots/tests.svg)
+
+`bash scripts/local-checks.sh` — 10 tests pass, the Helm chart renders 2
+manifests, and every YAML file parses.
+
+### App running locally
+
+![App running locally](docs/screenshots/live-app.svg)
+
+The built jar running on `http://localhost:8080` — `/health`,
+`/api/greet` and the welcome page, plus a 404 for an unknown path.
+
+### Helm chart render
+
+![Helm chart render](docs/screenshots/helm-template.svg)
+
+`helm template gitops-demo helm/app-chart` — Service + Deployment with
+the pinned image, `/health` probes and the non-root security context.
+
 ## Troubleshooting
 
 | Symptom | Likely cause and fix |

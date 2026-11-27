@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="812" height="453" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="13">
+<rect width="100%" height="100%" rx="8" fill="#0d1117"/>
+<rect width="100%" height="28" rx="8" fill="#161b22"/>
+<circle cx="18" cy="14" r="5" fill="#ff5f56"/>
+<circle cx="36" cy="14" r="5" fill="#ffbd2e"/>
+<circle cx="54" cy="14" r="5" fill="#27c93f"/>
+<text x="72" y="18" fill="#8b949e" font-size="12">local-checks.sh — Maven tests + Helm render + YAML checks</text>
+<text x="16" y="28" fill="#7ee787" font-weight="bold">$ bash scripts/local-checks.sh</text>
+<text x="16" y="54" fill="#c9d1d9">$ bash scripts/local-checks.sh</text>
+<text x="16" y="73" fill="#c9d1d9">== 1. Maven unit tests (offline) ==</text>
+<text x="16" y="92" fill="#c9d1d9">[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.211 s - in</text>
+<text x="16" y="111" fill="#c9d1d9">com.vinodg.gitopsdemo.GreetingServiceTest</text>
+<text x="16" y="130" fill="#c9d1d9">[INFO] Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 8.948 s - in</text>
+<text x="16" y="149" fill="#c9d1d9">com.vinodg.gitopsdemo.HomeControllerTest</text>
+<text x="16" y="168" fill="#c9d1d9">[INFO] Tests run: 10, Failures: 0, Errors: 0, Skipped: 0</text>
+<text x="16" y="187" fill="#c9d1d9">[INFO] BUILD SUCCESS</text>
+<text x="16" y="206" fill="#c9d1d9">[INFO] Total time:  19.807 s</text>
+<text x="16" y="225" fill="#c9d1d9">== 2. Helm chart render ==</text>
+<text x="16" y="244" fill="#c9d1d9">rendered 2 manifests: Service, Deployment</text>
+<text x="16" y="263" fill="#c9d1d9">== 3. Plain manifests parse check ==</text>
+<text x="16" y="282" fill="#c9d1d9">k8s/deployment.yaml -&gt; ['Deployment']</text>
+<text x="16" y="301" fill="#c9d1d9">k8s/kustomization.yaml -&gt; ['Kustomization']</text>
+<text x="16" y="320" fill="#c9d1d9">k8s/namespace.yaml -&gt; ['Namespace']</text>
+<text x="16" y="339" fill="#c9d1d9">k8s/service.yaml -&gt; ['Service']</text>
+<text x="16" y="358" fill="#c9d1d9">== 4. ArgoCD manifest parse check ==</text>
+<text x="16" y="377" fill="#c9d1d9">Application: gitops-demo | path: helm/app-chart</text>
+<text x="16" y="396" fill="#c9d1d9">All local checks passed.</text>
+<text x="16" y="445" fill="#6e7681" font-size="11">Real output from a local run — 27 November 2026</text>
+</svg>
