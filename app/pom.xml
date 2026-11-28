@@ -7,12 +7,18 @@
     <!--
       Spring Boot application for the Jenkins + SonarQube + ArgoCD GitOps
       pipeline. Fixes applied against the original reference pom.xml:
-        - Spring Boot 2.2.4.RELEASE (end of life) -> 3.4.1
+        - Spring Boot 2.2.4.RELEASE (end of life) -> 3.5.16, the final
+          3.x open-source patch (3.4.x left open-source support on
+          31 Dec 2025; 3.5.x on 30 Jun 2026). The move to the Spring
+          Boot 4.x line is a generation change (Spring Framework 7,
+          Jakarta EE 11, Jackson 3) and is tracked separately, not
+          silently applied.
         - Java 11 -> 17
         - groupId and artifact renamed to com.vinodg / gitops-demo
         - spring-boot-devtools dropped: a dev-only dependency has no place
           in a container image
-        - maven-compiler-plugin 3.8.0 -> 3.11.0
+        - maven-compiler-plugin 3.8.0 -> 3.14.1 and maven-surefire-plugin
+          3.0.0 -> 3.5.6, the versions Spring Boot 3.5.16 manages
         - sonar-maven-plugin pinned (the reference invoked sonar:sonar
           without declaring the plugin)
     -->
@@ -26,7 +32,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.1</version>
+        <version>3.5.16</version>
     </parent>
 
     <properties>
@@ -61,12 +67,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>3.14.1</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.5.6</version>
             </plugin>
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>

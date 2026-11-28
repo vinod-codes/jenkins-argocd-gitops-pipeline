@@ -12,11 +12,25 @@ offline mode (-o) against that populated repo.
 Scope rules (matching Maven for this project):
   - Provided/system scope dependencies are skipped: they are supplied by
     Maven core itself at runtime.
-  - Optional dependencies are skipped.
+  - Test-scope dependencies are skipped: Maven never resolves a
+    dependency's test-scoped dependencies onto any classpath (the
+    project's own test libraries arrive through spring-boot-starter-test,
+    whose dependencies are compile-scoped in its own POM). Resolving
+    them here only dragged in stale versions of artifacts the project
+    also needs (Mockito, JUnit, Logback) and poisoned the version map.
+  - Optional dependencies are skipped for the project's own tree
+    (Maven does not put them on the project classpath), but included
+    for plugin realms: Maven resolves a plugin's optional dependencies
+    into its realm (e.g. spring-boot-maven-plugin marks
+    maven-shade-plugin optional, yet the repackage goal needs it).
   - Import-scope dependencyManagement entries (BOMs) are followed so
     managed versions resolve.
-  - First-seen version wins (BFS from the seeds approximates Maven's
-    nearest-definition rule for this small tree).
+  - Every distinct (groupId, artifactId, version) encountered is
+    downloaded: Maven resolves the project classpath and each plugin's
+    realm separately, so different versions of one artifact can both be
+    needed (e.g. asm 9.8 for the compiler plugin, asm 9.7.1 for the
+    project's tests). First-seen-wins used to drop the second version
+    and break the offline build.
 """
 import os
 import re
@@ -30,19 +44,22 @@ LOCAL = os.path.expanduser("~/workspace/.m2")
 NS = "{http://maven.apache.org/POM/4.0.0}"
 
 SEEDS = [
-    ("org.apache.maven.plugins", "maven-clean-plugin", "3.2.0"),
+    ("org.apache.maven.plugins", "maven-clean-plugin", "3.4.1"),
     ("org.apache.maven.plugins", "maven-resources-plugin", "3.3.1"),
-    ("org.apache.maven.plugins", "maven-compiler-plugin", "3.11.0"),
-    ("org.apache.maven.plugins", "maven-surefire-plugin", "3.0.0"),
-    ("org.apache.maven.plugins", "maven-jar-plugin", "3.3.0"),
-    ("org.junit.jupiter", "junit-jupiter-api", "5.11.3"),
-    ("org.junit.jupiter", "junit-jupiter-engine", "5.11.3"),
+    ("org.apache.maven.plugins", "maven-compiler-plugin", "3.14.1"),
+    ("org.apache.maven.plugins", "maven-surefire-plugin", "3.5.6"),
+    ("org.apache.maven.plugins", "maven-jar-plugin", "3.4.2"),
+    # Surefire resolves its JUnit Platform provider dynamically at runtime
+    # (it is not a dependency in the plugin POM), so seed it explicitly.
+    ("org.apache.maven.surefire", "surefire-junit-platform", "3.5.6"),
+    ("org.junit.jupiter", "junit-jupiter-api", "5.12.2"),
+    ("org.junit.jupiter", "junit-jupiter-engine", "5.12.2"),
     # Spring Boot application (adapted from the reference project)
-    ("org.springframework.boot", "spring-boot-starter-parent", "3.4.1"),
-    ("org.springframework.boot", "spring-boot-starter-web", "3.4.1"),
-    ("org.springframework.boot", "spring-boot-starter-thymeleaf", "3.4.1"),
-    ("org.springframework.boot", "spring-boot-starter-test", "3.4.1"),
-    ("org.springframework.boot", "spring-boot-maven-plugin", "3.4.1"),
+    ("org.springframework.boot", "spring-boot-starter-parent", "3.5.16"),
+    ("org.springframework.boot", "spring-boot-starter-web", "3.5.16"),
+    ("org.springframework.boot", "spring-boot-starter-thymeleaf", "3.5.16"),
+    ("org.springframework.boot", "spring-boot-starter-test", "3.5.16"),
+    ("org.springframework.boot", "spring-boot-maven-plugin", "3.5.16"),
     ("org.sonarsource.scanner.maven", "sonar-maven-plugin", "4.0.0.4121"),
 ]
 
@@ -196,29 +213,41 @@ def effective_pom(g, a, v, depth=0):
             merged_mgmt.update(mgmt)
             mgmt = merged_mgmt
             imports = list(parent["imports"]) + imports
-    # Follow BOM imports for managed versions.
+    # Follow BOM imports for managed versions. Use effective_pom (not a
+    # bare fetch+parse) so each imported BOM's own parent chain is also
+    # downloaded: Maven builds the full model of an imported BOM, and a
+    # missing parent POM (e.g. artemis-project for artemis-bom) fails the
+    # build even though the BOM itself is present.
     for ig, ia, iv in imports:
         iv = substitute(iv, props) or iv
-        bom_path = fetch_pom(ig, ia, iv)
-        if bom_path:
-            bom = parse_pom(bom_path)
-            if bom is None:
-                continue
-            for key, val in bom["mgmt"].items():
-                mgmt.setdefault(key, val)
-            props.update({k: v for k, v in bom["props"].items()
-                          if k not in props})
+        bom = effective_pom(ig, ia, iv, depth + 1)
+        if bom is None:
+            continue
+        for key, val in bom["mgmt"].items():
+            mgmt.setdefault(key, val)
+        props.update({k: v for k, v in bom["props"].items()
+                      if k not in props})
     return {"props": props, "mgmt": mgmt, "deps": deps, "imports": imports}
 
 
-def main():
-    seen = set()
-    queue = deque(SEEDS)
+def resolve(seeds, prefer_fallback, include_optional, fallback_mgmt,
+            fallback_props, seen):
+    """Resolve one BFS pass, downloading every distinct artifact version
+    encountered. When prefer_fallback is true, the project's
+    dependencyManagement wins over a transitive POM's declared version,
+    matching Maven's nearest definition: e.g. Mockito declares
+    byte-buddy 1.15.11, but Spring Boot manages 1.17.8, so Maven uses
+    1.17.8 on the project classpath; and Maven likewise wants the
+    Boot-managed junit-platform-launcher 1.12.2 for the surefire
+    provider, not the 1.14.2 from surefire's own management. When
+    prefer_fallback is false, the project's management is only a last
+    resort for a version that is missing entirely."""
+    queue = deque(seeds)
     fetched_jars = 0
     fetched_poms = 0
     while queue:
         g, a, v = queue.popleft()
-        key = (g, a)
+        key = (g, a, v)
         if key in seen:
             continue
         seen.add(key)
@@ -233,29 +262,82 @@ def main():
         props["project.version"] = v
         props["version"] = v
         for dep in pom["deps"]:
-            if dep["optional"]:
+            if dep["optional"] and not include_optional:
                 continue
-            if dep["scope"] in ("provided", "system"):
+            if dep["scope"] in ("provided", "system", "test"):
                 continue
             dg, da = dep["groupId"], dep["artifactId"]
             if dg is None or da is None:
                 continue
-            dv = dep["version"]
+            dv = None
+            if prefer_fallback:
+                dv = fallback_mgmt.get((dg, da))
+            if dv is None:
+                dv = dep["version"]
             if dv is None:
                 dv = pom["mgmt"].get((dg, da))
+            if dv is None and not prefer_fallback:
+                dv = fallback_mgmt.get((dg, da))
             if dv is None:
                 print(f"  !! no version for {dg}:{da} (from {g}:{a})")
                 continue
-            dv = substitute(dv, props)
+            merged_props = dict(fallback_props)
+            merged_props.update(props)
+            dv = substitute(dv, merged_props)
             if dv is None:
                 print(f"  !! unresolvable version for {dg}:{da}")
                 continue
             dg = substitute(dg, props) or dg
             da = substitute(da, props) or da
-            if (dg, da) not in seen:
+            if (dg, da, dv) not in seen:
                 queue.append((dg, da, dv))
-    print(f"\nDone: {len(seen)} artifacts, {fetched_jars} jars, "
-          f"{fetched_poms} POMs resolved.")
+            # Also enqueue the project-managed version when it differs:
+            # Maven resolves a plugin's own dependencies from the
+            # plugin's POM, but artifacts resolved in the project
+            # context (e.g. the surefire provider) use the project's
+            # dependencyManagement instead. Downloading both versions
+            # covers both realms.
+            fb_raw = fallback_mgmt.get((dg, da))
+            fb = substitute(fb_raw, merged_props) if fb_raw else None
+            if fb and fb != dv and (dg, da, fb) not in seen:
+                queue.append((dg, da, fb))
+    return fetched_jars, fetched_poms
+
+
+def main():
+    # Fallback dependencyManagement for this project: Spring Boot 3.5.x
+    # starter POMs are published flattened, with explicit versions and no
+    # <parent> element, so a transitive dependency that carries no version
+    # of its own cannot be resolved standalone the way Maven resolves it
+    # under this project's own dependencyManagement. Resolve such
+    # dependencies against the Boot parent's managed versions instead.
+    root = effective_pom("org.springframework.boot",
+                         "spring-boot-starter-parent", "3.5.16")
+    fallback_mgmt = root["mgmt"] if root else {}
+    fallback_props = root["props"] if root else {}
+    seen = set()
+    # Pass 1: the application's own tree (the starters and the JUnit
+    # seeds). The project's dependencyManagement wins here, as Maven
+    # resolves it. spring-boot-maven-plugin is a plugin, so it belongs
+    # to pass 2 even though it shares the Boot groupId.
+    project_seeds = [s for s in SEEDS
+                     if s[1].startswith("spring-boot-starter")
+                     or s[0] == "org.junit.jupiter"]
+    jars, poms = resolve(project_seeds, True, False, fallback_mgmt,
+                         fallback_props, seen)
+    # Pass 2: the Maven plugins' own realms. Each plugin's POM wins
+    # here: a plugin's own dependencies resolve from the plugin's
+    # dependencyManagement, not the project's (e.g. the Boot plugin
+    # needs maven-shade-plugin 3.6.0 even though Boot manages 3.5.0).
+    # Artifacts the project also manages get both versions enqueued by
+    # resolve(), so project-context resolution (e.g. the surefire
+    # provider, which Maven wants at the Boot-managed 1.12.2, not the
+    # 1.14.2 from surefire's own management) is covered too.
+    plugin_seeds = [s for s in SEEDS if s not in project_seeds]
+    jars2, poms2 = resolve(plugin_seeds, False, True, fallback_mgmt,
+                           fallback_props, seen)
+    print(f"\nDone: {len(seen)} artifacts, {jars + jars2} jars, "
+          f"{poms + poms2} POMs resolved.")
 
 
 if __name__ == "__main__":

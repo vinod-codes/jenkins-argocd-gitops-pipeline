@@ -1,7 +1,7 @@
 # Jenkins + SonarQube + ArgoCD GitOps Pipeline
 
 ![Java 17](https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white)
-![Spring Boot 3.4.1](https://img.shields.io/badge/Spring%20Boot-3.4.1-6DB33F?logo=springboot&logoColor=white)
+![Spring Boot 3.5.16](https://img.shields.io/badge/Spring%20Boot-3.5.16-6DB33F?logo=springboot&logoColor=white)
 ![Maven 3.9](https://img.shields.io/badge/Maven-3.9-C71A36?logo=apachemaven&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-multi--stage-2496ED?logo=docker&logoColor=white)
 ![Helm](https://img.shields.io/badge/Helm-3%20%7C%204-0F1689?logo=helm&logoColor=white)
@@ -104,7 +104,7 @@ in the cluster. Nobody applies manifests by hand. The flow here is:
 | Layer | Choice |
 |---|---|
 | Language | Java 17 |
-| Framework | Spring Boot 3.4.1 (web + Thymeleaf) — pinned for offline reproducibility; the current stable line is 4.2.0 (Nov 2026), and the upgrade is tracked separately, not silently applied |
+| Framework | Spring Boot 3.5.16 (web + Thymeleaf) — the final 3.x open-source patch (3.5.x left open-source support on 30 Jun 2026); the current stable line is 4.2.0 (Nov 2026), and the 4.x upgrade is a generation change (Spring Framework 7, Jakarta EE 11, Jackson 3) tracked separately, not silently applied |
 | Build | Maven 3.9 |
 | Tests | JUnit 5, Spring Boot Test, MockMvc |
 | Code quality | SonarQube (sonar-maven-plugin 4.0.0.4121) |
@@ -361,7 +361,7 @@ and parse-checks every YAML file in `k8s/` and `argocd/`.
 
 ### Local test results
 
-Verified 27 November 2026 in this workspace (Temurin JDK 21, Maven 3.9.9,
+Verified 28 November 2026 in this workspace (Temurin JDK 21, Maven 3.9.9,
 offline against a local repository populated by
 `scripts/populate-maven-repo.py`, because Java cannot reach Maven Central
 through this sandbox's egress proxy — see the note in
@@ -369,7 +369,7 @@ through this sandbox's egress proxy — see the note in
 
 - `mvn -f app/pom.xml clean test` — **BUILD SUCCESS, 10 tests run, 0
   failures, 0 errors, 0 skipped** (5 `GreetingServiceTest` unit tests +
-  5 `HomeControllerTest` MockMvc HTTP tests, ~20 s).
+  5 `HomeControllerTest` MockMvc HTTP tests, ~16 s).
 - `mvn -f app/pom.xml clean package -DskipTests` — **BUILD SUCCESS**,
   executable jar `app/target/gitops-demo-1.0.0.jar` (22 MB, Spring Boot
   repackaged).
@@ -406,7 +406,7 @@ through this sandbox's egress proxy — see the note in
 
 ## Screenshots
 
-Real output from local runs on 27 November 2026 (Spring Boot 3.4.1, Java
+Real output from local runs on 28 November 2026 (Spring Boot 3.5.16, Java
 17, Maven 3.9.9, Helm 3.17.0). The images are terminal captures of actual
 commands — nothing is mocked up. Jenkins runs, ArgoCD sync,
 `kubectl apply`, Docker builds and SonarQube scans have no screenshots
