@@ -107,7 +107,7 @@ in the cluster. Nobody applies manifests by hand. The flow here is:
 | Framework | Spring Boot 3.5.16 (web + Thymeleaf) — the final 3.x open-source patch (3.5.x left open-source support on 30 Jun 2026); the current stable line is 4.2.0 (Nov 2026), and the 4.x upgrade is a generation change (Spring Framework 7, Jakarta EE 11, Jackson 3) tracked separately, not silently applied |
 | Build | Maven 3.9 |
 | Tests | JUnit 5, Spring Boot Test, MockMvc |
-| Code quality | SonarQube (sonar-maven-plugin 4.0.0.4121) |
+| Code quality | SonarQube (sonar-maven-plugin 5.9.0.7382) |
 | CI | Jenkins declarative pipeline |
 | Container | Docker, multi-stage build, Temurin 21 |
 | Kubernetes | Plain manifests + Helm chart (apiVersion v2; works with Helm 3 and 4) |

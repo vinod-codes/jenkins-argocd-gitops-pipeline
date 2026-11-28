@@ -19,8 +19,9 @@
           in a container image
         - maven-compiler-plugin 3.8.0 -> 3.14.1 and maven-surefire-plugin
           3.0.0 -> 3.5.6, the versions Spring Boot 3.5.16 manages
-        - sonar-maven-plugin pinned (the reference invoked sonar:sonar
-          without declaring the plugin)
+        - sonar-maven-plugin pinned at 5.9.0.7382, the current stable
+          release (Nov 2026); the reference invoked sonar:sonar without
+          declaring the plugin
     -->
     <groupId>com.vinodg</groupId>
     <artifactId>gitops-demo</artifactId>
@@ -77,7 +78,7 @@
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
-                <version>4.0.0.4121</version>
+                <version>5.9.0.7382</version>
             </plugin>
         </plugins>
     </build>

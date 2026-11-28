@@ -60,7 +60,7 @@ SEEDS = [
     ("org.springframework.boot", "spring-boot-starter-thymeleaf", "3.5.16"),
     ("org.springframework.boot", "spring-boot-starter-test", "3.5.16"),
     ("org.springframework.boot", "spring-boot-maven-plugin", "3.5.16"),
-    ("org.sonarsource.scanner.maven", "sonar-maven-plugin", "4.0.0.4121"),
+    ("org.sonarsource.scanner.maven", "sonar-maven-plugin", "5.9.0.7382"),
 ]
 
 
