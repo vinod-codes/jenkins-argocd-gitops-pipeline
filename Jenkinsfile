@@ -36,6 +36,12 @@
 pipeline {
     agent any
 
+    options {
+        // The 'Build and Test' stage does an explicit `checkout scm`, so
+        // skip the default checkout to avoid checking out twice.
+        skipDefaultCheckout(true)
+    }
+
     parameters {
         string(name: 'REGISTRY', defaultValue: 'docker.io',
                description: 'Container registry host, e.g. docker.io')
@@ -126,7 +132,10 @@ pipeline {
 
     post {
         always {
-            junit 'app/target/surefire-reports/*.xml'
+            // allowEmptyResults: a [skip ci] build runs no stages, so
+            // there are no test reports — that must not turn the build
+            // red.
+            junit allowEmptyResults: true, testResults: 'app/target/surefire-reports/*.xml'
         }
         failure {
             echo 'Pipeline failed. Check the stage logs; see README.md Troubleshooting.'

@@ -16,15 +16,21 @@ if [ -z "${JAVA_HOME:-}" ] && [ -x "$HOME/workspace/.tools/jdk-21.0.13.1+2/bin/j
     export JAVA_HOME="$HOME/workspace/.tools/jdk-21.0.13.1+2"
 fi
 
-echo "== 1. Maven unit tests (offline: the local repo was populated by scripts/populate-maven-repo.py) =="
+echo "== 1. Shell syntax check =="
+bash -n "$ROOT/scripts/local-checks.sh"
+bash -n "$ROOT/scripts/cleanup.sh"
+echo "scripts parse OK"
+
+echo "== 2. Maven unit tests (offline: the local repo was populated by scripts/populate-maven-repo.py) =="
 "$MAVEN" -o -s "$HOME/.m2/settings.xml" -Dmaven.repo.local="$HOME/workspace/.m2" \
   -f "$ROOT/app/pom.xml" clean test
 
-echo "== 2. Helm chart render =="
+echo "== 3. Helm chart lint + render =="
+"$HELM" lint "$ROOT/helm/app-chart"
 "$HELM" template gitops-demo "$ROOT/helm/app-chart" > /tmp/gitops-demo-rendered.yaml
 python3 -c "import yaml,sys; docs=list(yaml.safe_load_all(open('/tmp/gitops-demo-rendered.yaml'))); print(f'rendered {len(docs)} manifests: ' + ', '.join(d.get(\"kind\",\"?\") for d in docs if d))"
 
-echo "== 3. Plain manifests parse check =="
+echo "== 4. Plain manifests parse check =="
 python3 -c "
 import yaml, glob
 for f in sorted(glob.glob('$ROOT/k8s/*.yaml')):
@@ -32,7 +38,7 @@ for f in sorted(glob.glob('$ROOT/k8s/*.yaml')):
     print(f, '->', [d.get('kind') for d in docs if d])
 "
 
-echo "== 4. ArgoCD manifest parse check =="
+echo "== 5. ArgoCD manifest parse check =="
 python3 -c "import yaml; d=yaml.safe_load(open('$ROOT/argocd/application.yaml')); print('Application:', d['metadata']['name'], '| path:', d['spec']['source']['path'])"
 
 echo "All local checks passed."
