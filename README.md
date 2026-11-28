@@ -154,7 +154,7 @@ in the cluster. Nobody applies manifests by hand. The flow here is:
 │   ├── application.yaml        # ArgoCD Application (automated sync, prune, self-heal)
 │   └── setup.md                # ArgoCD install and sync instructions
 └── scripts/
-    ├── local-checks.sh         # Runs mvn test + helm template + YAML checks locally
+    ├── local-checks.sh         # Runs mvn test + helm lint/template + YAML checks locally
     ├── cleanup.sh              # Manual teardown (never auto-runs against a cluster)
     └── populate-maven-repo.py  # Populates a local Maven repo with curl (restricted networks)
 ```
@@ -299,7 +299,7 @@ See `argocd/setup.md` for the full steps. In short:
 ```bash
 # Install ArgoCD (once per cluster).
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.6.3/manifests/install.yaml
 
 # Register this repository's Application.
 kubectl apply -f argocd/application.yaml
@@ -356,8 +356,9 @@ cluster:
 bash scripts/local-checks.sh
 ```
 
-That runs `mvn clean test`, renders the Helm chart with `helm template`
-and parse-checks every YAML file in `k8s/` and `argocd/`.
+That runs `mvn clean test`, lints and renders the Helm chart with
+`helm lint` and `helm template`, syntax-checks the scripts with
+`bash -n`, and parse-checks every YAML file in `k8s/` and `argocd/`.
 
 ### Local test results
 

@@ -4,9 +4,16 @@
 
 ```bash
 kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -n argocd --server-side --force-conflicts -f https://raw.githubusercontent.com/argoproj/argo-cd/v3.6.3/manifests/install.yaml
 kubectl wait --for=condition=available deployment/argocd-server -n argocd --timeout=300s
 ```
+
+ArgoCD 3.6.3 is the latest stable release as of 28 November 2026 (the
+3.6 line is current; 3.5 and 3.4 still receive patches, 3.3 is end of
+life). Pin the install to a release tag instead of the `stable` branch
+so a fresh install is reproducible — check the ArgoCD releases page for
+a newer patch before installing, and confirm your Kubernetes version
+against the release's tested range (3.6 covers 1.34–1.37).
 
 Get the initial admin password and open the UI:
 
